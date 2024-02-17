@@ -1,9 +1,11 @@
 package com.github.denisbytes.javafootball.wsserver.handlers;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.denisbytes.javafootball.wsserver.kafka.KafkaProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -14,7 +16,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 @Component
 public class ServerHandler extends TextWebSocketHandler {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final Logger logger = LoggerFactory.getLogger(ServerHandler.class);
+
     @Autowired
     private KafkaProducer kafkaProducer;
 
@@ -24,17 +27,17 @@ public class ServerHandler extends TextWebSocketHandler {
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+    protected void handleTextMessage(@NonNull WebSocketSession session, @NonNull TextMessage message) {
         try {
             kafkaProducer.sendMessage(message.getPayload());
-            System.out.println("Received JSON data from session ID " + session.getId() + ": " + message.getPayload());
+            logger.info("Received JSON data from session ID " + session.getId() + ": " + message.getPayload());
         } catch (Exception e) {
             System.err.println("Error parsing JSON message: " + e.getMessage());
         }
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+    public void afterConnectionClosed(WebSocketSession session, @NonNull CloseStatus status) {
         System.out.println("Connection closed with session ID: " + session.getId() + ", Status: " + status);
     }
 

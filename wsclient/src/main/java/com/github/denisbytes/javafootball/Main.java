@@ -16,7 +16,6 @@ public class Main {
 
     private final Random random = new Random();
     private final String[] teams1 = {"Milan", "Inter"};
-    private final String[] teams2 = {"Barcelona", "Real Madrid"};
     private final String[] comment1 = {"Team get s forward", "Team advances down the field"};
     private final String[] comment2 = {"It's chance to score...", "They are moving the ball nicely..."};
     private final String[] comment3 = {"GOAL", "MISSED"};
@@ -45,26 +44,6 @@ public class Main {
                             .build();
 
                     session.getBasicRemote().sendText(jsonObject.toString());
-
-                    Thread.sleep(SEND_INTERVAL);
-                }
-                while (System.currentTimeMillis() - startTime < TWO_MINUTES) {
-                    ArrayList<String> matchHighlight = new ArrayList<>();
-                    matchHighlight.add(comment1[random.nextInt(2)]);
-                    matchHighlight.add(comment2[random.nextInt(2)]);
-                    matchHighlight.add(comment3[random.nextInt(2)]);
-                    if (matchHighlight.get(2).equals("GOAL")) {
-                        matchHighlight.add(comment4[random.nextInt(2)]);
-                    } else {
-                        matchHighlight.add(comment5[random.nextInt(2)]);
-                    }
-
-                    JsonObject jsonObject = Json.createObjectBuilder()
-                            .add("team", teams2[random.nextInt(2)])
-                            .add("comments", matchHighlight.toString())
-                            .build();
-
-                    session.getBasicRemote().sendObject(jsonObject);
 
                     Thread.sleep(SEND_INTERVAL);
                 }
