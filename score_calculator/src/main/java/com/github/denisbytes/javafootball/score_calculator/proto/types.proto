@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+
+option java_outer_classname = "MatchProto";
+option java_package = "com.github.denisbytes.javafootball.score_calculator.proto";
+
+message Match {
+  string matchID = 1;
+  string team1 = 2;
+  string team2 = 3;
+  repeated string comments = 4;
+  int32 team1Goals = 5;
+  int32 team2Goals = 6;
+}
+
+
+message MatchList {
+  repeated Match matches = 1;
+}

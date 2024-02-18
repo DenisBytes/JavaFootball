@@ -10,13 +10,14 @@ import org.springframework.stereotype.Component;
 public class KafkaProducer {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaProducer.class);
-    private static final String TOPIC_NAME = "MatchHighlightsData";
+    private static final String  TOPIC_NAME = "MatchHighlightsData";
+
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
     public void sendMessage(String message) {
-        logger.info("Sending message to Kafka: {}", message);
+        logger.info("Sending message to Kafka with: {}", message);
         kafkaTemplate.send(TOPIC_NAME, message);
     }
 }

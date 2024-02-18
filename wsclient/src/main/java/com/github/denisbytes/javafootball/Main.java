@@ -1,6 +1,8 @@
 package com.github.denisbytes.javafootball;
 
 import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.websocket.*;
 import java.net.URI;
@@ -28,6 +30,7 @@ public class Main {
         Thread thread = new Thread(() -> {
             try {
                 while (System.currentTimeMillis() - startTime < TWO_MINUTES) {
+                    String matchID = teams1[0]+"-"+teams1[1];
                     ArrayList<String> matchHighlight = new ArrayList<>();
                     matchHighlight.add(comment1[random.nextInt(2)]);
                     matchHighlight.add(comment2[random.nextInt(2)]);
@@ -39,8 +42,9 @@ public class Main {
                     }
 
                     JsonObject jsonObject = Json.createObjectBuilder()
+                            .add("matchID", matchID)
                             .add("team", teams1[random.nextInt(2)])
-                            .add("comments", matchHighlight.toString())
+                            .add("comments", buildJsonArray(matchHighlight))
                             .build();
 
                     session.getBasicRemote().sendText(jsonObject.toString());
@@ -61,7 +65,16 @@ public class Main {
 
     @OnError
     public void onError(Throwable e) {
+        System.out.println("ERROR FROM CLIENT -----");
         e.printStackTrace();
+    }
+
+    private JsonArray buildJsonArray(ArrayList<String> list) {
+        JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
+        for (String item : list) {
+            jsonArrayBuilder.add(item);
+        }
+        return jsonArrayBuilder.build();
     }
 
     public static void main(String[] args) {
