@@ -1,14 +1,18 @@
 package com.github.denisbytes.javafootball.score_calculator.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.denisbytes.javafootball.score_calculator.proto.MatchProto;
+import com.github.denisbytes.javafootball.score_calculator.consumer.KafkaDataConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Util {
-    public static MatchProto.Match findMatch(String matchID, List<MatchProto.Match> matches) {
-        for (MatchProto.Match match : matches) {
+    private static final Logger logger = LoggerFactory.getLogger(KafkaDataConsumer.class);
+
+    public static MatchServiceProto.Match findMatch(String matchID, List<MatchServiceProto.Match> matches) {
+        for (MatchServiceProto.Match match : matches) {
             if (match.getMatchID().equals(matchID)) {
                 return match;
             }
@@ -16,38 +20,36 @@ public class Util {
         return null;
     }
 
-    public static void updateGoalsCount(MatchProto.Match.Builder matchBuilder, JsonNode jsonNode) {
+    //checking id there's goal in the comments and assigning it to the respective team
+    public static void updateGoalsCount(MatchServiceProto.Match.Builder matchBuilder, JsonNode jsonNode) {
         List<String> comments = extractComments(jsonNode);
-        System.out.println("TEST 1 --------");
 
-        // Iterate over each comment in the list
         for (String comment : comments) {
-            System.out.println("TEST 2 --------");
             if (comment.equals("GOAL")) {
-                System.out.println("TEST 3 --------");
+                logger.debug("GOAL");
                 String team = jsonNode.get("team").asText();
                 if (team.equals(matchBuilder.getTeam1())) {
-                    System.out.println("TEST 4 --------");
                     incrementTeam1Goals(matchBuilder);
                 } else if (team.equals(matchBuilder.getTeam2())) {
-                    System.out.println("TEST 5 --------");
                     incrementTeam2Goals(matchBuilder);
                 } else {
-                    System.out.println("Invalid team name: " + team);
+                    logger.error("Invalid team name: {} ", team);
                 }
+            }
+            else{
+                logger.debug("No Goal");
             }
         }
     }
 
 
-
-    private static void incrementTeam1Goals(MatchProto.Match.Builder matchBuilder) {
-        System.out.println("TEST 6-----------------");
+    private static void incrementTeam1Goals(MatchServiceProto.Match.Builder matchBuilder) {
+        logger.debug("Team 1 scored");
         matchBuilder.setTeam1Goals(matchBuilder.getTeam1Goals() + 1);
     }
 
-    private static void incrementTeam2Goals(MatchProto.Match.Builder matchBuilder) {
-        System.out.println("TEST 7-----------------");
+    private static void incrementTeam2Goals(MatchServiceProto.Match.Builder matchBuilder) {
+        logger.debug("Team 2 scored");
         matchBuilder.setTeam2Goals(matchBuilder.getTeam2Goals() + 1);
     }
 
@@ -55,15 +57,13 @@ public class Util {
         List<String> comments = new ArrayList<>();
         JsonNode commentsNode = jsonNode.get("comments");
 
-        // Check if commentsNode is null
         if (commentsNode == null) {
-            System.out.println("Comments node is null");
+            logger.debug("comments node is null");
             return comments;
         }
 
         for (JsonNode commentNode : commentsNode) {
-            System.out.println("comments are not null");
-            System.out.println(comments);
+            logger.debug("adding comment to comments");
             comments.add(commentNode.asText());
         }
         return comments;

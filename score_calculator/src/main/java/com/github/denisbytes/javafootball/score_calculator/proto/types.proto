@@ -1,8 +1,17 @@
 syntax = "proto3";
 
-
-option java_outer_classname = "MatchProto";
 option java_package = "com.github.denisbytes.javafootball.score_calculator.proto";
+option java_outer_classname = "MatchServiceProto";
+
+service MatchService {
+  rpc GetMatches(GetMatchesRequest) returns (GetMatchesResponse);
+}
+
+message GetMatchesRequest {}
+
+message GetMatchesResponse {
+  repeated Match matches = 1;
+}
 
 message Match {
   string matchID = 1;
@@ -11,9 +20,4 @@ message Match {
   repeated string comments = 4;
   int32 team1Goals = 5;
   int32 team2Goals = 6;
-}
-
-
-message MatchList {
-  repeated Match matches = 1;
 }

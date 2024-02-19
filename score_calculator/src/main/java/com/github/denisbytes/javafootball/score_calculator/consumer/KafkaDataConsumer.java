@@ -3,7 +3,6 @@ package com.github.denisbytes.javafootball.score_calculator.consumer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.denisbytes.javafootball.score_calculator.proto.MatchProto;
 import com.github.denisbytes.javafootball.score_calculator.store.Store;
 import com.github.denisbytes.javafootball.score_calculator.util.Util;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -23,7 +21,7 @@ public class KafkaDataConsumer {
     private static final String TOPIC_NAME = "MatchHighlightsData";
     private ObjectMapper objectMapper = new ObjectMapper();
     private Store store = Store.getStore();
-    List<MatchProto.Match> matches = store.getMatches();
+    List<MatchServiceProto.Match> matches = store.getMatches();
 
 
     @KafkaListener(topics = TOPIC_NAME, groupId = GROUP_ID)
@@ -44,9 +42,10 @@ public class KafkaDataConsumer {
                 logger.error("Invalid matchID format: {}", matchID);
             }
 
-            MatchProto.Match existingMatch = Util.findMatch(matchID, matches);
+            MatchServiceProto.Match existingMatch = Util.findMatch(matchID, matches);
             if (existingMatch == null) {
-                MatchProto.Match.Builder newMatchBuilder = MatchProto.Match.newBuilder()
+                logger.info("Creating new instance of Match");
+                MatchServiceProto.Match.Builder newMatchBuilder = MatchServiceProto.Match.newBuilder()
                         .setMatchID(matchID)
                         .setTeam1(team1)
                         .setTeam2(team2)
@@ -54,17 +53,13 @@ public class KafkaDataConsumer {
                         .setTeam2Goals(0);
                 List<String> comments = Util.extractComments(jsonNode);
                 newMatchBuilder.addAllComments(comments);
-                System.out.println(comments);
                 matches.add(newMatchBuilder.build());
             } else {
-                MatchProto.Match.Builder existingMatchBuilder = existingMatch.toBuilder();
+                logger.info("Adding highlight ti existing match");
+                MatchServiceProto.Match.Builder existingMatchBuilder = existingMatch.toBuilder();
                 Util.updateGoalsCount(existingMatchBuilder, jsonNode);
                 matches.set(matches.indexOf(existingMatch), existingMatchBuilder.build());
             }
-
-            System.out.println("MY MATCH  -----------");
-            System.out.println(matches.get(0).getTeam1Goals()+" "+ matches.get(0).getTeam2Goals()+" "+ matches.size());
-            System.out.println("---------------------");
 
             logger.info("Received message for match: {}", matchID);
         } catch (JsonProcessingException e) {
